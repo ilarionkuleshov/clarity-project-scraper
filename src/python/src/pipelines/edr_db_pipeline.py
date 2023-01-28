@@ -7,11 +7,11 @@ from scrapy.utils.project import get_project_settings
 from twisted.enterprise import adbapi
 from MySQLdb.cursors import DictCursor
 
-from sqlalchemy.dialects import mysql
 from sqlalchemy.dialects.mysql import insert
 
 from items import EdrItem
 from database.models import Finances
+from utils import compile_and_stringify_statement
 
 
 class EdrDBPipeline:
@@ -51,7 +51,7 @@ class EdrDBPipeline:
     def process_item(self, item, spider):
         if isinstance(item, EdrItem):
             d = self.db_connection_pool.runQuery(
-                self.compile_and_stringify_statement(
+                compile_and_stringify_statement(
                     insert(Finances).values(item).prefix_with("IGNORE")
                 )
             )
@@ -67,12 +67,3 @@ class EdrDBPipeline:
 
     def errback(self, failure):
         self.logger.error(failure.getErrorMessage())
-
-    @staticmethod
-    def compile_and_stringify_statement(stmt):
-        return str(
-            stmt.compile(
-                compile_kwargs={"literal_binds": True},
-                dialect=mysql.dialect()
-            )
-        )
