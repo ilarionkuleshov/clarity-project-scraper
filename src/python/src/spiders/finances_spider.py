@@ -45,7 +45,7 @@ class FinancesSpider(TaskToMultipleResultsSpider):
         if not self.validate_finances_url(response.url):
             self.inject_status_and_exception_to_task(
                 response.meta.get("delivery_tag"),
-                TaskStatusCodes.PARTIAL_SUCCESS.value,
+                TaskStatusCodes.ERROR.value,
                 f"NO FINANCIAL REPORTS FOR {self.finances_year} YEAR"
             )
             return
