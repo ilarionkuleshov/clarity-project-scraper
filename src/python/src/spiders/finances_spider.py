@@ -45,11 +45,82 @@ class FinancesSpider(TaskToMultipleResultsSpider):
         if not self.validate_finances_url(response.url):
             self.inject_status_and_exception_to_task(
                 response.meta.get("delivery_tag"),
-                TaskStatusCodes.ERROR.value,
+                TaskStatusCodes.PARTIAL_SUCCESS.value,
                 f"NO FINANCIAL REPORTS FOR {self.finances_year} YEAR"
             )
             return
-        # TODO page parsing
+        try:
+            row_1012_start, row_1012_end = self.get_finances_periods(response, "1012")
+            row_1195_start, row_1195_end = self.get_finances_periods(response, "1195")
+            row_1495_start, row_1495_end = self.get_finances_periods(response, "1495")
+            row_1595_start, row_1595_end = self.get_finances_periods(response, "1595")
+            row_1621_start, row_1621_end = self.get_finances_periods(response, "1621")
+            row_1695_start, row_1695_end = self.get_finances_periods(response, "1695")
+            row_1900_start, row_1900_end = self.get_finances_periods(response, "1900")
+            row_2000_start, row_2000_end = self.get_finances_periods(response, "2000")
+            row_2280_start, row_2280_end = self.get_finances_periods(response, "2280")
+            row_2350_start, row_2350_end = self.get_finances_periods(response, "2350")
+            yield FinancesItem(
+                {
+                    "id": response.meta.get("finances_id"),
+                    "url": response.url,
+                    "row_1012_start": row_1012_start,
+                    "row_1012_end": row_1012_end,
+                    "row_1195_start": row_1195_start,
+                    "row_1195_end": row_1195_end,
+                    "row_1495_start": row_1495_start,
+                    "row_1495_end": row_1495_end,
+                    "row_1595_start": row_1595_start,
+                    "row_1595_end": row_1595_end,
+                    "row_1621_start": row_1621_start,
+                    "row_1621_end": row_1621_end,
+                    "row_1695_start": row_1695_start,
+                    "row_1695_end": row_1695_end,
+                    "row_1900_start": row_1900_start,
+                    "row_1900_end": row_1900_end,
+                    "row_2000_start": row_2000_start,
+                    "row_2000_end": row_2000_end,
+                    "row_2280_start": row_2280_start,
+                    "row_2280_end": row_2280_end,
+                    "row_2350_start": row_2350_start,
+                    "row_2350_end": row_2350_end
+                }
+            )
+            self.logger.info(f"Parsed finances: {response.url}")
+        except Exception as e:
+            self.inject_status_and_exception_to_task(
+                response.meta.get("delivery_tag"),
+                TaskStatusCodes.ERROR.value,
+                str(e)
+            )
+
+    def get_finances_periods(self, response, row_code):
+        start_period, end_period = None, None
+        for table in response.xpath("//div[@class='entity-content']/table"):
+            row_code_index = self.get_column_index_by_text(table, "Код рядка")
+            start_period_index = (
+                self.get_column_index_by_text(table, "На початок звітного періоду")
+                or self.get_column_index_by_text(table, "За звітний період")
+            )
+            end_period_index = (
+                self.get_column_index_by_text(table, "На кінець звітного періоду")
+                or self.get_column_index_by_text(table, "За аналогічний період попереднього року")
+            )
+            if None in [row_code_index, start_period_index, end_period_index]:
+                continue
+
+            start_period = self.get_cell_value_by_code_and_index(
+                table, row_code_index, row_code, start_period_index
+            )
+            end_period = self.get_cell_value_by_code_and_index(
+                table, row_code_index, row_code, end_period_index
+            )
+            if None in [start_period, end_period]:
+                start_period, end_period = None, None
+                continue
+            else:
+                break
+        return self.format_finances_period(start_period), self.format_finances_period(end_period)
 
     @rmq_errback
     def errback(self, failure):
@@ -76,3 +147,29 @@ class FinancesSpider(TaskToMultipleResultsSpider):
             "current_year" in furl_obj.args
             and furl_obj.args["current_year"] == self.finances_year
         )
+
+    @staticmethod
+    def get_column_index_by_text(table, text):
+        column_index = table.xpath(
+            "count(thead/tr/th[contains(text(), $text)]/preceding-sibling::th)",
+            text=text
+        ).get()
+        if column_index is not None and column_index != "0.0":
+            return int(float(column_index)) + 1
+        return None
+
+    @staticmethod
+    def get_cell_value_by_code_and_index(table, code_index, code, column_index):
+        return table.xpath(
+            "tbody/tr[td[$code_index and text()=$code]]/td[$column_index]/text()",
+            code_index=code_index,
+            code=code,
+            column_index=column_index
+        ).get()
+
+    @staticmethod
+    def format_finances_period(finances_period):
+        try:
+            return float(finances_period.strip().replace(" ", ""))
+        except:
+            return None
