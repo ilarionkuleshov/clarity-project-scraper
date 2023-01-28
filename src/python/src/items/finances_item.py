@@ -3,6 +3,7 @@ from rmq.items import RMQItem
 
 
 class FinancesItem(RMQItem):
+    id = Field()
     url = Field()
 
     row_1012_start = Field()
