@@ -16,6 +16,8 @@ class EdrSpider(SitemapSpider):
             get_import_full_name(EdrDBPipeline): 300
         }
     }
+    sitemap_counter = 0
+    total_sitemaps = 0
 
     def start_requests(self):
         yield Request(
@@ -25,6 +27,7 @@ class EdrSpider(SitemapSpider):
 
     def parse_base_sitemap(self, response):
         urls = re.findall(r"<loc>(.*?)</loc>", response.text)
+        self.total_sitemaps = len(urls)
         for url in urls:
             yield Request(
                 url=url,
@@ -37,8 +40,10 @@ class EdrSpider(SitemapSpider):
         for url in urls:
             edr = self.get_edr_from_url(url)
             if edr:
-                self.logger.info(f"Parsed new edr: {edr}")
+                self.logger.debug(f"Parsed new edr: {edr}")
                 yield EdrItem({"edr": edr})
+        self.sitemap_counter += 1
+        self.logger.info(f"Processed sitemap {self.sitemap_counter}/{self.total_sitemaps}")
 
     @staticmethod
     def get_edr_from_url(url):

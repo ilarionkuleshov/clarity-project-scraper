@@ -37,17 +37,14 @@ class XlsxEdrImporter(DatabaseReactorCommand):
                     {"edr": self.validate_edr(row[0].value)}
                 )
                 if self.edr_counter % self.chunk_size == 0:
-                    d = self.db_connection_pool.runQuery(
-                        compile_and_stringify_statement(
-                            insert(Finances).values(edr_values).prefix_with("IGNORE")
-                        )
-                    )
-                    d.addCallback(self.on_edr_insert_success)
-                    deferred_interactions.append(d)
+                    deferred_interactions.append(self.get_edr_deferred(edr_values))
                     edr_values = []
+
+            deferred_interactions.append(self.get_edr_deferred(edr_values))
             deferred_list = defer.DeferredList(deferred_interactions, consumeErrors=True)
             deferred_list.addCallback(self.on_total_success)
             deferred_list.addErrback(self.errback)
+
             return deferred_list
         else:
             self.logger.error("Argument `--file` is incorrect")
@@ -55,8 +52,12 @@ class XlsxEdrImporter(DatabaseReactorCommand):
             reactor.callLater(0, deferred.callback, True)
             return deferred
 
-    def on_edr_insert_success(self, _):
-        self.logger.info(f"Inserted {self.chunk_size} edr`s")
+    def get_edr_deferred(self, edr_values):
+        return self.db_connection_pool.runQuery(
+            compile_and_stringify_statement(
+                insert(Finances).values(edr_values).prefix_with("IGNORE")
+            )
+        )
 
     def on_total_success(self, _):
         self.logger.info(f"Successfully inserted {self.edr_counter} edr`s")
