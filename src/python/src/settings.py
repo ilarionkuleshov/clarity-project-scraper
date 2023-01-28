@@ -94,3 +94,5 @@ if datetime(*[int(number) for number in USER_AGENT_RELEASE_DATE.split('-')]) + t
 FINANCES_TASKS = os.getenv("FINANCES_TASKS", "finances_tasks")
 FINANCES_REPLIES = os.getenv("FINANCES_REPLIES", "finances_replies")
 FINANCES_RESULTS = os.getenv("FINANCES_RESULTS", "finances_results")
+
+FINANCES_YEAR = os.getenv("FINANCES_YEAR", "2021")
