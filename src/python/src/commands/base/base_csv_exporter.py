@@ -158,7 +158,7 @@ class BaseCSVExporter(BaseCommand):
             postfix = self.filename_postfix
         if extension is None:
             extension = self.file_extension
-        export_path = path.join(path.abspath('..'), 'storage')
+        export_path = path.join(path.abspath('./storage'))
         file_name = f'{prefix}{datetime.datetime.now().strftime(timestamp_format)}{postfix}.{extension}'
         return path.join(export_path, file_name)
 
