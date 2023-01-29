@@ -95,32 +95,29 @@ class FinancesSpider(TaskToMultipleResultsSpider):
             )
 
     def get_finances_periods(self, response, row_code):
-        start_period, end_period = None, None
         for table in response.xpath("//div[@class='entity-content']/table"):
             row_code_index = self.get_column_index_by_text(table, "Код рядка")
             start_period_index = (
-                self.get_column_index_by_text(table, "На початок звітного періоду")
+                self.get_column_index_by_text(table, "На початок звітного")
                 or self.get_column_index_by_text(table, "За звітний період")
             )
             end_period_index = (
-                self.get_column_index_by_text(table, "На кінець звітного періоду")
+                self.get_column_index_by_text(table, "На кінець звітного")
                 or self.get_column_index_by_text(table, "За аналогічний період попереднього року")
             )
             if None in [row_code_index, start_period_index, end_period_index]:
                 continue
-
             start_period = self.get_cell_value_by_code_and_index(
                 table, row_code_index, row_code, start_period_index
             )
             end_period = self.get_cell_value_by_code_and_index(
                 table, row_code_index, row_code, end_period_index
             )
-            if None in [start_period, end_period]:
-                start_period, end_period = None, None
-                continue
+            if start_period is not None or end_period is not None:
+                return self.format_finances_period(start_period), self.format_finances_period(end_period)
             else:
-                break
-        return self.format_finances_period(start_period), self.format_finances_period(end_period)
+                continue
+        return None, None
 
     @rmq_errback
     def errback(self, failure):
