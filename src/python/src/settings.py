@@ -90,7 +90,8 @@ if IS_SENTRY_ENABLED:
 
 configure_logging()
 if datetime(*[int(number) for number in USER_AGENT_RELEASE_DATE.split('-')]) + timedelta(days=180) < datetime.now():
-    logging.debug('USER_AGENT is outdated')
+    if LOG_LEVEL == "DEBUG":
+        logging.debug('USER_AGENT is outdated')
 
 FINANCES_TASKS = os.getenv("FINANCES_TASKS", "finances_tasks")
 FINANCES_REPLIES = os.getenv("FINANCES_REPLIES", "finances_replies")
