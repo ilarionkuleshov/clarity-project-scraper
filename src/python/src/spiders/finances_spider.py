@@ -63,20 +63,21 @@ class FinancesSpider(TaskToMultipleResultsSpider):
             )
             return
         try:
-            row_1012_start, row_1012_end = self.get_finances_periods(response, "1012")
-            row_1195_start, row_1195_end = self.get_finances_periods(response, "1195")
-            row_1495_start, row_1495_end = self.get_finances_periods(response, "1495")
-            row_1595_start, row_1595_end = self.get_finances_periods(response, "1595")
-            row_1621_start, row_1621_end = self.get_finances_periods(response, "1621")
-            row_1695_start, row_1695_end = self.get_finances_periods(response, "1695")
-            row_1900_start, row_1900_end = self.get_finances_periods(response, "1900")
-            row_2000_start, row_2000_end = self.get_finances_periods(response, "2000")
-            row_2280_start, row_2280_end = self.get_finances_periods(response, "2280")
-            row_2350_start, row_2350_end = self.get_finances_periods(response, "2350")
+            row_1012_start, row_1012_end, units = self.get_finances_periods(response, "1012")
+            row_1195_start, row_1195_end, units = self.get_finances_periods(response, "1195")
+            row_1495_start, row_1495_end, units = self.get_finances_periods(response, "1495")
+            row_1595_start, row_1595_end, units = self.get_finances_periods(response, "1595")
+            row_1621_start, row_1621_end, units = self.get_finances_periods(response, "1621")
+            row_1695_start, row_1695_end, units = self.get_finances_periods(response, "1695")
+            row_1900_start, row_1900_end, units = self.get_finances_periods(response, "1900")
+            row_2000_start, row_2000_end, units = self.get_finances_periods(response, "2000")
+            row_2280_start, row_2280_end, units = self.get_finances_periods(response, "2280")
+            row_2350_start, row_2350_end, units = self.get_finances_periods(response, "2350")
             yield FinancesItem(
                 {
                     "id": response.meta.get("finances_id"),
                     "url": response.url,
+                    "units": units,
                     "row_1012_start": row_1012_start,
                     "row_1012_end": row_1012_end,
                     "row_1195_start": row_1195_start,
@@ -127,10 +128,15 @@ class FinancesSpider(TaskToMultipleResultsSpider):
                 table, row_code_index, row_code, end_period_index
             )
             if start_period is not None or end_period is not None:
-                return self.format_finances_period(start_period), self.format_finances_period(end_period)
+                units = self.get_table_units(table, start_period_index)
+                return [
+                    self.format_finances_period(start_period),
+                    self.format_finances_period(end_period),
+                    units
+                ]
             else:
                 continue
-        return None, None
+        return [None, None, None]
 
     @rmq_errback
     def errback(self, failure):
@@ -186,3 +192,11 @@ class FinancesSpider(TaskToMultipleResultsSpider):
             return float(finances_period.strip().replace(" ", ""))
         except:
             return None
+
+    @staticmethod
+    def get_table_units(table, column_index):
+        units = table.xpath(
+            "thead/tr/th[$index]/span[@class='nobr']/text()",
+            index=column_index
+        ).get(default="").strip()
+        return units if units else None
