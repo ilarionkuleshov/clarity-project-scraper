@@ -96,3 +96,5 @@ FINANCES_REPLIES = os.getenv("FINANCES_REPLIES", "finances_replies")
 FINANCES_RESULTS = os.getenv("FINANCES_RESULTS", "finances_results")
 
 FINANCES_YEAR = os.getenv("FINANCES_YEAR", "2021")
+
+MAX_RETRIES = 5
