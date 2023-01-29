@@ -17,7 +17,12 @@ from items import FinancesItem
 class FinancesSpider(TaskToMultipleResultsSpider):
     name = "finances"
     custom_settings = {
-        "ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}
+        "ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310},
+        "DOWNLOAD_HANDLERS": {
+            "http": "utils.handlers.RotatingProxiesDownloadHandler",
+            "https": "utils.handlers.RotatingProxiesDownloadHandler"
+        },
+        "ROTATING_PROXIES_DOWNLOADER_HANDLER_AUTO_CLOSE_CACHED_CONNECTIONS_ENABLED": False
     }
 
     def __init__(self):
@@ -46,7 +51,15 @@ class FinancesSpider(TaskToMultipleResultsSpider):
             self.inject_status_and_exception_to_task(
                 response.meta.get("delivery_tag"),
                 TaskStatusCodes.ERROR.value,
-                f"NO FINANCIAL REPORTS FOR {self.finances_year} YEAR"
+                f"NO FINANCIAL REPORTS FOR {self.finances_year} YEAR",
+                is_warn=True
+            )
+            return
+        if response.meta.get("exception"):
+            self.inject_status_and_exception_to_task(
+                response.meta.get("delivery_tag"),
+                TaskStatusCodes.ERROR.value,
+                response.meta["exception"]
             )
             return
         try:
@@ -132,10 +145,13 @@ class FinancesSpider(TaskToMultipleResultsSpider):
             error_message
         )
 
-    def inject_status_and_exception_to_task(self, delivery_tag, status, exception=None):
+    def inject_status_and_exception_to_task(self, delivery_tag, status, exception=None, is_warn=False):
         self.processing_tasks.set_status(delivery_tag, status)
         if exception:
-            self.logger.error(exception)
+            if is_warn:
+                self.logger.warn(exception)
+            else:
+                self.logger.error(exception)
             self.processing_tasks.set_exception(delivery_tag, exception)
 
     def validate_finances_url(self, url):

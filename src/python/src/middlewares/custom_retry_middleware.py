@@ -21,8 +21,9 @@ class CustomRetryMiddleware:
                 priority_adjust=0,
             )
             if retry_request:
+                spider.logger.error("Received BLOCKED response. Retrying request...")
                 retry_request.meta["close_cached_connections"] = True
                 return retry_request
             else:
-                raise Exception(f"received BLOCKED responses {self.max_retries + 1} times")
+                response.meta["exception"] = f"received BLOCKED responses {self.max_retries + 1} times"
         return response
