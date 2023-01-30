@@ -16,7 +16,6 @@ class Finances(
 
     edr = Column("edr", VARCHAR(100), unique=True, nullable=False)
     url = Column("url", VARCHAR(768), default=None, nullable=True)
-    units = Column("units", VARCHAR(100), default=None, nullable=True)
 
     row_1012_start = Column("row_1012_start", FLOAT(), default=None, nullable=True)
     row_1012_end = Column("row_1012_end", FLOAT(), default=None, nullable=True)
