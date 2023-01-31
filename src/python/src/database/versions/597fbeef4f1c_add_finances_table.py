@@ -25,6 +25,7 @@ def upgrade():
         Column("id", BIGINT(unsigned=True), primary_key=True, autoincrement=True),
         Column("edr", VARCHAR(100), unique=True, nullable=False),
         Column("url", VARCHAR(768), default=None, nullable=True),
+        Column("units", VARCHAR(100), default=None, nullable=True),
         Column("row_1012_start", FLOAT(), default=None, nullable=True),
         Column("row_1012_end", FLOAT(), default=None, nullable=True),
         Column("row_1195_start", FLOAT(), default=None, nullable=True),
