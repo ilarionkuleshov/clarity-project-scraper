@@ -21,7 +21,7 @@ depends_on = None
 
 def upgrade():
     op.create_table(
-        "finances",
+        "clarity_finances",
         Column("id", BIGINT(unsigned=True), primary_key=True, autoincrement=True),
         Column("edr", VARCHAR(100), unique=True, nullable=False),
         Column("url", VARCHAR(768), default=None, nullable=True),
@@ -62,4 +62,4 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table("finances")
+    op.drop_table("clarity_finances")

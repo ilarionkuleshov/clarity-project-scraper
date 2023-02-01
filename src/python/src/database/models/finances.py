@@ -12,7 +12,7 @@ class Finances(
     Base, MysqlPrimaryKeyMixin, MysqlExceptionMixin,
     MysqlStatusMixin, MysqlTimestampsMixin
 ):
-    __tablename__ = "finances"
+    __tablename__ = "clarity_finances"
 
     edr = Column("edr", VARCHAR(100), unique=True, nullable=False)
     url = Column("url", VARCHAR(768), default=None, nullable=True)
