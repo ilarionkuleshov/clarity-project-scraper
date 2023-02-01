@@ -9,6 +9,11 @@ poetry install
 ```
 Configure _.env_ file according to _.env.example_ (DB, RabbitMQ, proxy).
 
+To run DB migration scripts (in _src/python/src_ directory):
+```
+poetry run alembic upgrade head
+```
+
 ## Usage
 To scrape all edr's from https://clarity-project.info/ (in _src/python/src_ directory):
 ```
