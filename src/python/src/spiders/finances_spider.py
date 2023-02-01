@@ -22,7 +22,12 @@ class FinancesSpider(TaskToMultipleResultsSpider):
             "http": "utils.handlers.RotatingProxiesDownloadHandler",
             "https": "utils.handlers.RotatingProxiesDownloadHandler"
         },
-        "ROTATING_PROXIES_DOWNLOADER_HANDLER_AUTO_CLOSE_CACHED_CONNECTIONS_ENABLED": False
+        "ROTATING_PROXIES_DOWNLOADER_HANDLER_AUTO_CLOSE_CACHED_CONNECTIONS_ENABLED": False,
+        "DOWNLOADER_MIDDLEWARES": {
+            "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": None,
+            "middlewares.HttpProxyMiddleware": 543,
+            "middlewares.CustomRetryMiddleware": 100,
+        }
     }
 
     def __init__(self):
