@@ -42,7 +42,6 @@ ROTATING_PROXIES_DOWNLOADER_HANDLER_AUTO_CLOSE_CACHED_CONNECTIONS_ENABLED: bool 
 DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": None,
     "middlewares.HttpProxyMiddleware": 543,
-    "middlewares.CustomRetryMiddleware": 100,
 }
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
